@@ -38,20 +38,22 @@ import br.ufpe.cin.if710.podcast.db.PodcastProvider;
 import br.ufpe.cin.if710.podcast.db.PodcastProviderContract;
 import br.ufpe.cin.if710.podcast.domain.ItemFeed;
 import br.ufpe.cin.if710.podcast.domain.XmlFeedParser;
+import br.ufpe.cin.if710.podcast.service.DownloadXMLService;
+import br.ufpe.cin.if710.podcast.service.PlayPauseMusicService;
 import br.ufpe.cin.if710.podcast.ui.adapter.XmlFeedAdapter;
 
 public class MainActivity extends Activity {
 
     //ao fazer envio da resolucao, use este link no seu codigo!
     private final String RSS_FEED = "http://leopoldomt.com/if710/fronteirasdaciencia.xml";
-    public static final String DOWNLOAD_COMPLETE = "br.ufpe.cin.if710.podcast.action.DOWNLOAD_COMPLETE";
-    public static final String MUSIC_PAUSE = "br.ufpe.cin.if710.podcast.action.MUSIC_PAUSE";
     //TODO teste com outros links de podcast
 
-    private ListView items;
 
-    /**indica se atualizou o banco*/
-    private Boolean atualizou = false;
+    public static final String DOWNLOAD_COMPLETE = "br.ufpe.cin.if710.podcast.action.DOWNLOAD_COMPLETE";
+    public static final String DOWNLOAD_XML_COMPLETE = "br.ufpe.cin.if710.podcast.action.DOWNLOAD_XML_COMPLETE";
+    public static final String MUSIC_PAUSE = "br.ufpe.cin.if710.podcast.action.MUSIC_PAUSE";
+
+    private ListView items;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -135,12 +137,21 @@ public class MainActivity extends Activity {
     @Override
     protected void onStart() {
         super.onStart();
+
+        //Atualizar a view
         tela();
-        new DownloadXmlTask().execute(RSS_FEED);
 
         //registrando
         registerReceiver(downloadCompleto, new IntentFilter(DOWNLOAD_COMPLETE));
         registerReceiver(musicPause, new IntentFilter(MUSIC_PAUSE));
+        registerReceiver(downloadXMLComplete, new IntentFilter(DOWNLOAD_XML_COMPLETE));
+
+        //Iniciando o download do xml
+        Intent downloadXMLService = new Intent(getApplicationContext(), DownloadXMLService.class);
+        Bundle bundle = new Bundle();
+        bundle.putSerializable("rss", RSS_FEED);
+        downloadXMLService.putExtras(bundle);
+        getApplicationContext().startService(downloadXMLService);
     }
 
     @Override
@@ -157,76 +168,14 @@ public class MainActivity extends Activity {
         //desregistrando
         unregisterReceiver(downloadCompleto);
         unregisterReceiver(musicPause);
-    }
-
-    private class DownloadXmlTask extends AsyncTask<String, Void, List<ItemFeed>> {
-        @Override
-        protected void onPreExecute() {
-//            Toast.makeText(getApplicationContext(), "iniciando...", Toast.LENGTH_SHORT).show();
-        }
-
-        @Override
-        protected List<ItemFeed> doInBackground(String... params) {
-            List<ItemFeed> itemList = new ArrayList<>();
-            try {
-                itemList = XmlFeedParser.parse(getRssFeed(params[0]));
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (XmlPullParserException e) {
-                e.printStackTrace();
-            }
-
-            //verifica se tem item novo no parse, se tiver salva no banco
-
-            atualizou = false;
-
-            ContentResolver cr;
-            ContentValues cv = new ContentValues();
-
-            for (ItemFeed item : itemList) {
-                ContentResolver crAux = getContentResolver();
-                String selection = PodcastProviderContract.TITLE + " = ?";
-                String[] selectionArgs = new String[]{item.getTitle()};
-                Cursor c = crAux.query(PodcastProviderContract.EPISODE_LIST_URI, null, selection, selectionArgs, null);
-
-                atualizou = atualizou || (c.getCount() == 0);
-
-                if (c.getCount() == 0) {
-                    cr = getContentResolver();
-                    cv.put(PodcastDBHelper.EPISODE_TITLE, item.getTitle());
-                    cv.put(PodcastDBHelper.EPISODE_LINK, item.getLink());
-                    cv.put(PodcastDBHelper.EPISODE_DATE, item.getPubDate());
-                    cv.put(PodcastDBHelper.EPISODE_DESC, item.getDescription());
-                    cv.put(PodcastDBHelper.EPISODE_DOWNLOAD_LINK, item.getDownloadLink());
-                    cv.put(PodcastDBHelper.EPISODE_FILE_URI, "");
-                    cv.put(PodcastDBHelper.EPISODE_DOWNLOADED, "false");
-                    cv.put(PodcastDBHelper.EPISODE_TIME_PAUSED, "0");
-                    cr.insert(PodcastProviderContract.EPISODE_LIST_URI, cv);
-                }
-            }
-
-            return itemList;
-        }
-
-        @Override
-        protected void onPostExecute(List<ItemFeed> feed) {
-//            Toast.makeText(getApplicationContext(), "terminando...", Toast.LENGTH_SHORT).show();
-
-            //se tem item novo no banco atualiza a tela
-            if (atualizou){
-                tela();
-                Toast.makeText(getApplicationContext(), "Atualizou", Toast.LENGTH_SHORT).show();
-            }else{
-                Toast.makeText(getApplicationContext(), "Não Atualizou", Toast.LENGTH_SHORT).show();
-            }
-        }
+        unregisterReceiver(downloadXMLComplete);
     }
 
     BroadcastReceiver downloadCompleto = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
             Toast.makeText(context, "Download Completo Com Sucesso", Toast.LENGTH_SHORT).show();
 
-//            //Recupera o Item do intent
+            //Recupera o Item do intent
             Bundle params = intent.getExtras();
             ItemFeed itemFeed = (ItemFeed)params.get("Item");
 
@@ -264,26 +213,21 @@ public class MainActivity extends Activity {
         }
     };
 
-    //TODO Opcional - pesquise outros meios de obter arquivos da internet
-    private String getRssFeed(String feed) throws IOException {
-        InputStream in = null;
-        String rssFeed = "";
-        try {
-            URL url = new URL(feed);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            in = conn.getInputStream();
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            byte[] buffer = new byte[1024];
-            for (int count; (count = in.read(buffer)) != -1; ) {
-                out.write(buffer, 0, count);
-            }
-            byte[] response = out.toByteArray();
-            rssFeed = new String(response, "UTF-8");
-        } finally {
-            if (in != null) {
-                in.close();
+    BroadcastReceiver downloadXMLComplete = new BroadcastReceiver() {
+        public void onReceive(Context context, Intent intent) {
+            Toast.makeText(context, "Download XML Completo", Toast.LENGTH_SHORT).show();
+
+            Bundle params = intent.getExtras();
+            boolean atualizou = (Boolean) params.get("atualizou");
+
+            //se tem item novo no banco atualiza a tela
+            if (atualizou){
+                //Atualizar a view
+                tela();
+                Toast.makeText(getApplicationContext(), "Atualizou", Toast.LENGTH_SHORT).show();
+            }else{
+                Toast.makeText(getApplicationContext(), "Não Atualizou", Toast.LENGTH_SHORT).show();
             }
         }
-        return rssFeed;
-    }
+    };
 }

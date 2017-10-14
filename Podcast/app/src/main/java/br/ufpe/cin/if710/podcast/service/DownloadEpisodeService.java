@@ -28,13 +28,13 @@ import br.ufpe.cin.if710.podcast.domain.ItemFeed;
  * Created by isaacdouglas1 on 08/10/17.
  */
 
-public class DownloadService extends IntentService {
+public class DownloadEpisodeService extends IntentService {
 
     public static final String DOWNLOAD_COMPLETE = "br.ufpe.cin.if710.podcast.action.DOWNLOAD_COMPLETE";
     public Uri uri;
 
-    public DownloadService() {
-        super("DownloadService");
+    public DownloadEpisodeService() {
+        super("DownloadEpisodeService");
     }
 
     @Override

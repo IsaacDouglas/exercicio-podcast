@@ -10,8 +10,8 @@ import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 import br.ufpe.cin.if710.podcast.R;
-import br.ufpe.cin.if710.podcast.service.DownloadService;
-import br.ufpe.cin.if710.podcast.service.PlayMusicService;
+import br.ufpe.cin.if710.podcast.service.DownloadEpisodeService;
+import br.ufpe.cin.if710.podcast.service.PlayPauseMusicService;
 import br.ufpe.cin.if710.podcast.domain.ItemFeed;
 
 import android.widget.Button;
@@ -94,7 +94,7 @@ public class XmlFeedAdapter extends ArrayAdapter<ItemFeed> {
                     Toast.makeText(getContext(), "Iniciando o download", Toast.LENGTH_SHORT).show();
 
                     //cria um intent para iniciar o service e passa o item clicado
-                    Intent downloadService = new Intent(getContext(), DownloadService.class);
+                    Intent downloadService = new Intent(getContext(), DownloadEpisodeService.class);
                     Bundle bundle = new Bundle();
                     bundle.putSerializable("Item", getItem(position));
                     downloadService.putExtras(bundle);
@@ -111,7 +111,7 @@ public class XmlFeedAdapter extends ArrayAdapter<ItemFeed> {
                     }
 
                     //inicia o service para tocar a musica ou pausar passando o item clicado
-                    Intent playMusicService = new Intent(getContext(), PlayMusicService.class);
+                    Intent playMusicService = new Intent(getContext(), PlayPauseMusicService.class);
                     Bundle bundle = new Bundle();
                     bundle.putSerializable("Item", getItem(position));
                     playMusicService.putExtras(bundle);

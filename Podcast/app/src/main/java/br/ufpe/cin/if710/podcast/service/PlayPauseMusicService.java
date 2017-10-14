@@ -15,7 +15,7 @@ import br.ufpe.cin.if710.podcast.domain.ItemFeed;
  * Created by isaacdouglas1 on 08/10/17.
  */
 
-public class PlayMusicService extends Service {
+public class PlayPauseMusicService extends Service {
 
     private final String TAG = "MusicPlayerNoBindingService";
     public static final String MUSIC_PAUSE = "br.ufpe.cin.if710.podcast.action.MUSIC_PAUSE";

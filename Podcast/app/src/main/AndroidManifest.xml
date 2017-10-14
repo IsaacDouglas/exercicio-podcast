@@ -22,11 +22,15 @@
         <activity android:name=".ui.SettingsActivity" />
 
         <service
-            android:name=".service.DownloadService"
+            android:name=".service.DownloadEpisodeService"
             android:enabled="true"
             android:exported="true" />
         <service
-            android:name=".service.PlayMusicService"
+            android:name=".service.PlayPauseMusicService"
+            android:enabled="true"
+            android:exported="true" />
+        <service
+            android:name=".service.DownloadXMLService"
             android:enabled="true"
             android:exported="true" />
 
