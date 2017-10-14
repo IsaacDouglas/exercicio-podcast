@@ -2,6 +2,9 @@ package br.ufpe.cin.if710.podcast.ui;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.ContentValues;
@@ -48,12 +51,16 @@ public class MainActivity extends Activity {
     private final String RSS_FEED = "http://leopoldomt.com/if710/fronteirasdaciencia.xml";
     //TODO teste com outros links de podcast
 
+    // Notification ID permite associar e agrupar notificacoes no futuro
+    private static final int MY_NOTIFICATION_ID = 3;
 
     public static final String DOWNLOAD_COMPLETE = "br.ufpe.cin.if710.podcast.action.DOWNLOAD_COMPLETE";
     public static final String DOWNLOAD_XML_COMPLETE = "br.ufpe.cin.if710.podcast.action.DOWNLOAD_XML_COMPLETE";
     public static final String MUSIC_PAUSE = "br.ufpe.cin.if710.podcast.action.MUSIC_PAUSE";
 
     private ListView items;
+
+    boolean primeiroPlano = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -135,7 +142,20 @@ public class MainActivity extends Activity {
     }
 
     @Override
+    protected void onResume() {
+        primeiroPlano = true;
+        super.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        primeiroPlano = false;
+        super.onPause();
+    }
+
+    @Override
     protected void onStart() {
+        primeiroPlano = true;
         super.onStart();
 
         //Atualizar a view
@@ -156,6 +176,7 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onStop() {
+        primeiroPlano = false;
         super.onStop();
         XmlFeedAdapter adapter = (XmlFeedAdapter) items.getAdapter();
         adapter.clear();
@@ -163,6 +184,7 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+        primeiroPlano = false;
         super.onDestroy();
 
         //desregistrando
@@ -173,7 +195,7 @@ public class MainActivity extends Activity {
 
     BroadcastReceiver downloadCompleto = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
-            Toast.makeText(context, "Download Completo Com Sucesso", Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, "Download Completo", Toast.LENGTH_SHORT).show();
 
             //Recupera o Item do intent
             Bundle params = intent.getExtras();
@@ -182,13 +204,12 @@ public class MainActivity extends Activity {
             ContentResolver cr = getContentResolver();
             ContentValues cv = new ContentValues();
             cv.put(PodcastDBHelper.EPISODE_FILE_URI, params.get("uri").toString());
-            cv.put(PodcastDBHelper.EPISODE_DOWNLOADED, "true");
             String selection = PodcastProviderContract.TITLE + " = ?";
             String[] selectionArgs = new String[]{itemFeed.getTitle()};
             cr.update(PodcastProviderContract.EPISODE_LIST_URI, cv, selection, selectionArgs);
 
-            //Atualizar a view
-            tela();
+                //Atualizar a view
+                tela();
         }
     };
 
@@ -203,7 +224,6 @@ public class MainActivity extends Activity {
             ContentResolver cr = getContentResolver();
             ContentValues cv = new ContentValues();
             cv.put(PodcastDBHelper.EPISODE_TIME_PAUSED, itemFeed.getTimePaused());
-            cv.put(PodcastDBHelper.EPISODE_DOWNLOADED, "true");
             String selection = PodcastProviderContract.TITLE + " = ?";
             String[] selectionArgs = new String[]{itemFeed.getTitle()};
             cr.update(PodcastProviderContract.EPISODE_LIST_URI, cv, selection, selectionArgs);
@@ -220,14 +240,34 @@ public class MainActivity extends Activity {
             Bundle params = intent.getExtras();
             boolean atualizou = (Boolean) params.get("atualizou");
 
-            //se tem item novo no banco atualiza a tela
-            if (atualizou){
-                //Atualizar a view
-                tela();
-                Toast.makeText(getApplicationContext(), "Atualizou", Toast.LENGTH_SHORT).show();
-            }else{
-                Toast.makeText(getApplicationContext(), "Não Atualizou", Toast.LENGTH_SHORT).show();
+            View rootView = getWindow().getDecorView().getRootView();
+
+            //Verifica se esta em primeiro plano
+            if (rootView.isShown()){
+                //se tem item novo no banco atualiza a tela
+                if (atualizou){
+                    //Atualizar a view
+                    tela();
+                    Toast.makeText(getApplicationContext(), "Atualizou", Toast.LENGTH_SHORT).show();
+                }
+            }else {
+                final Intent notificationIntent = new Intent(getApplicationContext(), MainActivity.class);
+                final PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 0, notificationIntent, 0);
+
+                final Notification notification = new Notification.Builder(
+                        getApplicationContext())
+                        .setSmallIcon(android.R.drawable.btn_star)
+                        .setAutoCancel(true)
+                        .setOngoing(true).setContentTitle("Podcasts Atualizados")
+                        .setContentText("Acesse para ver as novidades!")
+                        .setContentIntent(pendingIntent)
+                        .build();
+
+                NotificationManager notificationManager = (NotificationManager)getApplicationContext().getSystemService(NOTIFICATION_SERVICE);
+                notificationManager.notify(MY_NOTIFICATION_ID, notification);
             }
+
+
         }
     };
 }

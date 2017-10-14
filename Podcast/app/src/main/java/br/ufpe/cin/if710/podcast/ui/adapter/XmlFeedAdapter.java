@@ -103,10 +103,8 @@ public class XmlFeedAdapter extends ArrayAdapter<ItemFeed> {
 
                     //troca de play para pause e vice versa
                     if(holder.button.getText().equals("Play")){
-                        Toast.makeText(getContext(), "Play", Toast.LENGTH_SHORT).show();
                         holder.button.setText("Pause");
                     }else{
-                        Toast.makeText(getContext(), "Pause", Toast.LENGTH_SHORT).show();
                         holder.button.setText("Play");
                     }
 
