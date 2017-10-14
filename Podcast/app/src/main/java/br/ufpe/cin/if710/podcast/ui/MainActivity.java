@@ -1,13 +1,20 @@
 package br.ufpe.cin.if710.podcast.ui;
 
+import android.Manifest;
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.provider.Telephony;
+import android.telephony.SmsMessage;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -38,6 +45,7 @@ public class MainActivity extends Activity {
     //ao fazer envio da resolucao, use este link no seu codigo!
     private final String RSS_FEED = "http://leopoldomt.com/if710/fronteirasdaciencia.xml";
     public static final String DOWNLOAD_COMPLETE = "br.ufpe.cin.if710.podcast.action.DOWNLOAD_COMPLETE";
+    public static final String MUSIC_PAUSE = "br.ufpe.cin.if710.podcast.action.MUSIC_PAUSE";
     //TODO teste com outros links de podcast
 
     private ListView items;
@@ -129,6 +137,10 @@ public class MainActivity extends Activity {
         super.onStart();
         tela();
         new DownloadXmlTask().execute(RSS_FEED);
+
+        //registrando
+        registerReceiver(downloadCompleto, new IntentFilter(DOWNLOAD_COMPLETE));
+        registerReceiver(musicPause, new IntentFilter(MUSIC_PAUSE));
     }
 
     @Override
@@ -138,10 +150,19 @@ public class MainActivity extends Activity {
         adapter.clear();
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        //desregistrando
+        unregisterReceiver(downloadCompleto);
+        unregisterReceiver(musicPause);
+    }
+
     private class DownloadXmlTask extends AsyncTask<String, Void, List<ItemFeed>> {
         @Override
         protected void onPreExecute() {
-            Toast.makeText(getApplicationContext(), "iniciando...", Toast.LENGTH_SHORT).show();
+//            Toast.makeText(getApplicationContext(), "iniciando...", Toast.LENGTH_SHORT).show();
         }
 
         @Override
@@ -189,7 +210,7 @@ public class MainActivity extends Activity {
 
         @Override
         protected void onPostExecute(List<ItemFeed> feed) {
-            Toast.makeText(getApplicationContext(), "terminando...", Toast.LENGTH_SHORT).show();
+//            Toast.makeText(getApplicationContext(), "terminando...", Toast.LENGTH_SHORT).show();
 
             //se tem item novo no banco atualiza a tela
             if (atualizou){
@@ -201,6 +222,47 @@ public class MainActivity extends Activity {
         }
     }
 
+    BroadcastReceiver downloadCompleto = new BroadcastReceiver() {
+        public void onReceive(Context context, Intent intent) {
+            Toast.makeText(context, "Download Completo Com Sucesso", Toast.LENGTH_SHORT).show();
+
+//            //Recupera o Item do intent
+            Bundle params = intent.getExtras();
+            ItemFeed itemFeed = (ItemFeed)params.get("Item");
+
+            ContentResolver cr = getContentResolver();
+            ContentValues cv = new ContentValues();
+            cv.put(PodcastDBHelper.EPISODE_FILE_URI, params.get("uri").toString());
+            cv.put(PodcastDBHelper.EPISODE_DOWNLOADED, "true");
+            String selection = PodcastProviderContract.TITLE + " = ?";
+            String[] selectionArgs = new String[]{itemFeed.getTitle()};
+            cr.update(PodcastProviderContract.EPISODE_LIST_URI, cv, selection, selectionArgs);
+
+            //Atualizar a view
+            tela();
+        }
+    };
+
+    BroadcastReceiver musicPause = new BroadcastReceiver() {
+        public void onReceive(Context context, Intent intent) {
+            Toast.makeText(context, "Pausou...", Toast.LENGTH_SHORT).show();
+
+            //Recupera o Item do intent
+            Bundle params = intent.getExtras();
+            ItemFeed itemFeed = (ItemFeed)params.get("Item");
+
+            ContentResolver cr = getContentResolver();
+            ContentValues cv = new ContentValues();
+            cv.put(PodcastDBHelper.EPISODE_TIME_PAUSED, itemFeed.getTimePaused());
+            cv.put(PodcastDBHelper.EPISODE_DOWNLOADED, "true");
+            String selection = PodcastProviderContract.TITLE + " = ?";
+            String[] selectionArgs = new String[]{itemFeed.getTitle()};
+            cr.update(PodcastProviderContract.EPISODE_LIST_URI, cv, selection, selectionArgs);
+
+            //Atualizar a view
+            tela();
+        }
+    };
 
     //TODO Opcional - pesquise outros meios de obter arquivos da internet
     private String getRssFeed(String feed) throws IOException {

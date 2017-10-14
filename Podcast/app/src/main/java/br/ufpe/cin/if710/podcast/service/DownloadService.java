@@ -41,12 +41,12 @@ public class DownloadService extends IntentService {
     public void onHandleIntent(Intent i) {
         try {
             Bundle params = i.getExtras();
-            final ItemFeed item = (ItemFeed)params.get("Item"); //recupera o item do feed
+            final ItemFeed itemFeed = (ItemFeed)params.get("Item"); //recupera o item do feed
 
             //checar se tem permissao... Android 6.0+
             File root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
             root.mkdirs();
-            uri = Uri.parse(item.getDownloadLink()); // pegando a URI
+            uri = Uri.parse(itemFeed.getDownloadLink()); // pegando a URI
             final File output = new File(root, uri.getLastPathSegment());
             if (output.exists()) {
                 output.delete();
@@ -78,26 +78,9 @@ public class DownloadService extends IntentService {
             //prepara o intent para passar o broadcast do fim do download
             Intent downloadComplete = new Intent(DOWNLOAD_COMPLETE);
             downloadComplete.putExtra("uri", uriDownload); // passa a uri de download
-            downloadComplete.putExtra("Item", item); //passa o item que foi realizado o download
+            downloadComplete.putExtra("Item", itemFeed); //passa o item que foi realizado o download
             getApplicationContext().sendBroadcast(downloadComplete);
 
-
-            Handler handler = new Handler(Looper.getMainLooper());
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    Toast.makeText(getApplicationContext(), "Download completo", Toast.LENGTH_LONG).show();
-
-                    ContentResolver cr = getContentResolver();
-                    ContentValues cv = new ContentValues();
-                    cv.put(PodcastDBHelper.EPISODE_FILE_URI, uriDownload.toString());
-                    cv.put(PodcastDBHelper.EPISODE_DOWNLOADED, "true");
-                    String selection = PodcastProviderContract.TITLE + " = ?";
-                    String[] selectionArgs = new String[]{item.getTitle()};
-                    cr.update(PodcastProviderContract.EPISODE_LIST_URI, cv, selection, selectionArgs);
-
-                }
-            });
 
         } catch (IOException e2) {
             Log.e(getClass().getName(), "Exception durante download", e2);

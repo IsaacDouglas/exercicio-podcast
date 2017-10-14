@@ -55,29 +55,29 @@ public class PlayMusicService extends Service {
             mStartID = startId;
 
             Bundle params = intent.getExtras();
-            final ItemFeed item = (ItemFeed)params.get("Item"); //recupera o item do feed
+            final ItemFeed itemFeed = (ItemFeed)params.get("Item"); //recupera o item do feed
 
             /**/
             //se ja esta tocando...
             if (mPlayer.isPlaying()) {
                 int timePaused = mPlayer.getCurrentPosition();
-                item.setTimePaused(timePaused); //guardar no item o tempo para salvar no banco posteriormente
+                itemFeed.setTimePaused(timePaused); //guardar no item o tempo para salvar no banco posteriormente
 
                 mPlayer.reset();
 
                 //criando um intent para enviar quando clicar pausa
                 Intent musicPause = new Intent(MUSIC_PAUSE);
                 Bundle bundle = new Bundle();
-                bundle.putSerializable("Item", item);
+                bundle.putSerializable("Item", itemFeed);
                 musicPause.putExtras(bundle);
                 getApplicationContext().sendBroadcast(musicPause);
             }
             else {
                 // inicia musica
                 try {
-                    mPlayer.setDataSource(this, Uri.parse(item.getUri()));
+                    mPlayer.setDataSource(this, Uri.parse(itemFeed.getUri()));
                     mPlayer.prepare();
-                    mPlayer.seekTo(item.getTimePaused()); // ir para o tempo que foi armazenado no item
+                    mPlayer.seekTo(itemFeed.getTimePaused()); // ir para o tempo que foi armazenado no item
                     mPlayer.start();
                 } catch (IOException e) {
                     e.printStackTrace();

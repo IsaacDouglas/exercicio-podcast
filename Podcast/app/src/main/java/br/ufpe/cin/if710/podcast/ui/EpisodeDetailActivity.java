@@ -13,7 +13,7 @@ import br.ufpe.cin.if710.podcast.R;
 
 public class EpisodeDetailActivity extends Activity {
 
-    ItemFeed itemFeed;
+    public static final String DOWNLOAD_COMPLETE = "br.ufpe.cin.if710.podcast.action.DOWNLOAD_COMPLETE";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,6 +21,8 @@ public class EpisodeDetailActivity extends Activity {
         setContentView(R.layout.activity_episode_detail);
 
         //TODO preencher com informações do episódio clicado na lista...
+
+
 
         //Recupera o Item do intent
         Intent intent = getIntent();
