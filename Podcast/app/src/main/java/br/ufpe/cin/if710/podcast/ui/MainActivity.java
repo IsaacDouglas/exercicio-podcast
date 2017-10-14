@@ -1,7 +1,11 @@
 package br.ufpe.cin.if710.podcast.ui;
 
 import android.app.Activity;
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Intent;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.Menu;
@@ -22,6 +26,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import br.ufpe.cin.if710.podcast.R;
+import br.ufpe.cin.if710.podcast.db.PodcastDBHelper;
+import br.ufpe.cin.if710.podcast.db.PodcastProvider;
+import br.ufpe.cin.if710.podcast.db.PodcastProviderContract;
 import br.ufpe.cin.if710.podcast.domain.ItemFeed;
 import br.ufpe.cin.if710.podcast.domain.XmlFeedParser;
 import br.ufpe.cin.if710.podcast.ui.adapter.XmlFeedAdapter;
@@ -30,9 +37,13 @@ public class MainActivity extends Activity {
 
     //ao fazer envio da resolucao, use este link no seu codigo!
     private final String RSS_FEED = "http://leopoldomt.com/if710/fronteirasdaciencia.xml";
+    public static final String DOWNLOAD_COMPLETE = "br.ufpe.cin.if710.podcast.action.DOWNLOAD_COMPLETE";
     //TODO teste com outros links de podcast
 
     private ListView items;
+
+    /**indica se atualizou o banco*/
+    private Boolean atualizou = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +51,56 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
 
         items = (ListView) findViewById(R.id.items);
+        items.setTextFilterEnabled(true);
+        items.setClickable(true);
+
+        items.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                XmlFeedAdapter adapter = (XmlFeedAdapter) parent.getAdapter();
+                ItemFeed item = adapter.getItem(position);
+                final String msg = "Abrindo: " + item.getTitle();
+                Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
+
+                //abre a tela de detalhes do item
+                Intent i = new Intent(getApplicationContext(), EpisodeDetailActivity.class);
+                Bundle bundle = new Bundle();
+                bundle.putSerializable("Item", item);
+                i.putExtras(bundle);
+                startActivity(i);
+            }
+        });
+    }
+
+    private void tela(){
+
+        //Responsavel por atualizar a tela se mudar algo no banco
+
+        Cursor c = getContentResolver().query(PodcastProviderContract.EPISODE_LIST_URI, null, null, null, null);
+        ArrayList<ItemFeed> itemFeed = new ArrayList<>();
+        while (c.moveToNext()) {
+            String title = c.getString(c.getColumnIndex(PodcastProviderContract.TITLE));
+            String link = c.getString(c.getColumnIndex(PodcastProviderContract.EPISODE_LINK));
+            String pubDate = c.getString(c.getColumnIndex(PodcastProviderContract.DATE));
+            String description = c.getString(c.getColumnIndex(PodcastProviderContract.DESCRIPTION));
+            String downloadLink = c.getString(c.getColumnIndex(PodcastProviderContract.DOWNLOAD_LINK));
+
+            String uriString = c.getString(c.getColumnIndex(PodcastProviderContract.EPISODE_URI));
+            uriString = (uriString.length()==0) ? null : uriString;
+
+            Integer timePaused = c.getInt(c.getColumnIndex(PodcastProviderContract.TIME_PAUSED));
+
+            ItemFeed item = new ItemFeed(title, link, pubDate, description, downloadLink);
+            item.setTimePaused(timePaused);
+            item.setUri(uriString);
+            itemFeed.add(item);
+        }
+
+        //Adapter Personalizado
+        XmlFeedAdapter adapter = new XmlFeedAdapter(getApplicationContext(), R.layout.itemlista, itemFeed);
+
+        //atualizar o list view
+        items.setAdapter(adapter);
     }
 
     @Override
@@ -66,6 +127,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onStart() {
         super.onStart();
+        tela();
         new DownloadXmlTask().execute(RSS_FEED);
     }
 
@@ -92,6 +154,36 @@ public class MainActivity extends Activity {
             } catch (XmlPullParserException e) {
                 e.printStackTrace();
             }
+
+            //verifica se tem item novo no parse, se tiver salva no banco
+
+            atualizou = false;
+
+            ContentResolver cr;
+            ContentValues cv = new ContentValues();
+
+            for (ItemFeed item : itemList) {
+                ContentResolver crAux = getContentResolver();
+                String selection = PodcastProviderContract.TITLE + " = ?";
+                String[] selectionArgs = new String[]{item.getTitle()};
+                Cursor c = crAux.query(PodcastProviderContract.EPISODE_LIST_URI, null, selection, selectionArgs, null);
+
+                atualizou = atualizou || (c.getCount() == 0);
+
+                if (c.getCount() == 0) {
+                    cr = getContentResolver();
+                    cv.put(PodcastDBHelper.EPISODE_TITLE, item.getTitle());
+                    cv.put(PodcastDBHelper.EPISODE_LINK, item.getLink());
+                    cv.put(PodcastDBHelper.EPISODE_DATE, item.getPubDate());
+                    cv.put(PodcastDBHelper.EPISODE_DESC, item.getDescription());
+                    cv.put(PodcastDBHelper.EPISODE_DOWNLOAD_LINK, item.getDownloadLink());
+                    cv.put(PodcastDBHelper.EPISODE_FILE_URI, "");
+                    cv.put(PodcastDBHelper.EPISODE_DOWNLOADED, "false");
+                    cv.put(PodcastDBHelper.EPISODE_TIME_PAUSED, "0");
+                    cr.insert(PodcastProviderContract.EPISODE_LIST_URI, cv);
+                }
+            }
+
             return itemList;
         }
 
@@ -99,25 +191,16 @@ public class MainActivity extends Activity {
         protected void onPostExecute(List<ItemFeed> feed) {
             Toast.makeText(getApplicationContext(), "terminando...", Toast.LENGTH_SHORT).show();
 
-            //Adapter Personalizado
-            XmlFeedAdapter adapter = new XmlFeedAdapter(getApplicationContext(), R.layout.itemlista, feed);
-
-            //atualizar o list view
-            items.setAdapter(adapter);
-            items.setTextFilterEnabled(true);
-            /*
-            items.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    XmlFeedAdapter adapter = (XmlFeedAdapter) parent.getAdapter();
-                    ItemFeed item = adapter.getItem(position);
-                    String msg = item.getTitle() + " " + item.getLink();
-                    Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
-                }
-            });
-            /**/
+            //se tem item novo no banco atualiza a tela
+            if (atualizou){
+                tela();
+                Toast.makeText(getApplicationContext(), "Atualizou", Toast.LENGTH_SHORT).show();
+            }else{
+                Toast.makeText(getApplicationContext(), "Não Atualizou", Toast.LENGTH_SHORT).show();
+            }
         }
     }
+
 
     //TODO Opcional - pesquise outros meios de obter arquivos da internet
     private String getRssFeed(String feed) throws IOException {

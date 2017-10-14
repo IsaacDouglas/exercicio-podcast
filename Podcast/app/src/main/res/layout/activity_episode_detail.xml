@@ -1,9 +1,82 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context="br.ufpe.cin.if710.podcast.ui.EpisodeDetailActivity">
+    android:layout_height="wrap_content"
+    tools:context="br.ufpe.cin.if710.podcast.ui.EpisodeDetailActivity"
+    android:orientation="vertical" >
 
-</android.support.constraint.ConstraintLayout>
+    <TextView
+        android:id="@+id/title_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Titulo:"
+        android:textSize="28sp" />
+    <TextView
+        android:id="@+id/item_title_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textSize="22sp" />
+    <TextView
+        android:id="@+id/pubDate_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Data:"
+        android:textSize="28sp" />
+    <TextView
+        android:id="@+id/item_pubDate_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textSize="18sp" />
+    <TextView
+        android:id="@+id/description_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Descrição:"
+        android:textSize="28sp" />
+    <TextView
+        android:id="@+id/item_description_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textSize="18sp" />
+    <TextView
+        android:id="@+id/link_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Link:"
+        android:textSize="28sp" />
+    <TextView
+        android:id="@+id/item_link_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textSize="18sp" />
+    <TextView
+        android:id="@+id/downloadLink_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Link de Download:"
+        android:textSize="28sp" />
+    <TextView
+        android:id="@+id/item_downloadLink_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textSize="18sp" />
+    <TextView
+        android:id="@+id/uri_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Uri:"
+        android:textSize="28sp" />
+    <TextView
+        android:id="@+id/item_uri_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textSize="18sp" />
+</LinearLayout>

@@ -1,11 +1,15 @@
 package br.ufpe.cin.if710.podcast.domain;
 
-public class ItemFeed {
+import java.io.Serializable;
+
+public class ItemFeed implements Serializable{
     private final String title;
     private final String link;
     private final String pubDate;
     private final String description;
     private final String downloadLink;
+    private String uri;
+    private Integer timePaused;
 
 
     public ItemFeed(String title, String link, String pubDate, String description, String downloadLink) {
@@ -14,6 +18,8 @@ public class ItemFeed {
         this.pubDate = pubDate;
         this.description = description;
         this.downloadLink = downloadLink;
+        this.uri = null;
+        this.timePaused = 0;
     }
 
     public String getTitle() {
@@ -36,8 +42,24 @@ public class ItemFeed {
         return downloadLink;
     }
 
+    public String getUri() {
+        return uri;
+    }
+
+    public void setUri(String uri){
+        this.uri = uri;
+    }
+
     @Override
     public String toString() {
         return title;
+    }
+
+    public Integer getTimePaused() {
+        return timePaused;
+    }
+
+    public void setTimePaused(Integer timePaused) {
+        this.timePaused = timePaused;
     }
 }
