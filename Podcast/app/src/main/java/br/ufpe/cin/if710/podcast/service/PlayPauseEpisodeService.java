@@ -15,13 +15,15 @@ import br.ufpe.cin.if710.podcast.domain.ItemFeed;
  * Created by isaacdouglas1 on 08/10/17.
  */
 
-public class PlayPauseMusicService extends Service {
+public class PlayPauseEpisodeService extends Service {
 
     private final String TAG = "MusicPlayerNoBindingService";
-    public static final String MUSIC_PAUSE = "br.ufpe.cin.if710.podcast.action.MUSIC_PAUSE";
+    public static final String EPISODE_PAUSE = "br.ufpe.cin.if710.podcast.action.EPISODE_PAUSE";
+    public static final String EPISODE_OVER = "br.ufpe.cin.if710.podcast.action.EPISODE_OVER";
 
     private MediaPlayer mPlayer;
     private int mStartID;
+    private ItemFeed itemFeed;
 
     @Override
     public void onCreate() {
@@ -42,6 +44,15 @@ public class PlayPauseMusicService extends Service {
                 public void onCompletion(MediaPlayer mp) {
                     // encerra se foi iniciado com o mesmo ID
                     stopSelf(mStartID);
+                    mPlayer.stop();
+                    mPlayer.release();
+
+                    //criando um intent para enviar quando a musica acabar
+                    Intent musicOver = new Intent(EPISODE_OVER);
+                    Bundle bundle = new Bundle();
+                    bundle.putSerializable("Item", itemFeed);
+                    musicOver.putExtras(bundle);
+                    getApplicationContext().sendBroadcast(musicOver);
                 }
             });
         }
@@ -55,7 +66,7 @@ public class PlayPauseMusicService extends Service {
             mStartID = startId;
 
             Bundle params = intent.getExtras();
-            final ItemFeed itemFeed = (ItemFeed)params.get("Item"); //recupera o item do feed
+            itemFeed = (ItemFeed)params.get("Item"); //recupera o item do feed
 
             /**/
             //se ja esta tocando...
@@ -66,7 +77,7 @@ public class PlayPauseMusicService extends Service {
                 mPlayer.reset();
 
                 //criando um intent para enviar quando clicar pausa
-                Intent musicPause = new Intent(MUSIC_PAUSE);
+                Intent musicPause = new Intent(EPISODE_PAUSE);
                 Bundle bundle = new Bundle();
                 bundle.putSerializable("Item", itemFeed);
                 musicPause.putExtras(bundle);
@@ -86,7 +97,6 @@ public class PlayPauseMusicService extends Service {
         }
         // nao reinicia service automaticamente se for eliminado
         return START_NOT_STICKY;
-
     }
 
     @Override
@@ -96,7 +106,6 @@ public class PlayPauseMusicService extends Service {
             mPlayer.stop();
             mPlayer.release();
         }
-
     }
 
     //nao eh possivel fazer binding com este service

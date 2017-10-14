@@ -11,4 +11,14 @@
         android:title="@string/pref_desc"
         android:defaultValue="@string/feed_link" />
 
+    <EditTextPreference
+        android:dialogTitle="Mudar Periodicidade"
+        android:dialogMessage="Em quanto tempo deseja atualizar o Feed?"
+        android:key="periodo"
+        android:negativeButtonText="@string/cancel"
+        android:positiveButtonText="@string/change"
+        android:title="Periodicidade"
+        android:defaultValue="3" />
+
+
 </PreferenceScreen>

@@ -1,15 +1,21 @@
 package br.ufpe.cin.if710.podcast.ui;
 
 import android.app.Activity;
+import android.app.job.JobScheduler;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
+import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.Spinner;
 
 import br.ufpe.cin.if710.podcast.R;
 
 public class SettingsActivity extends Activity {
     public static final String FEED_LINK = "feedlink";
+    public static final String PERIODO = "periodo";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,6 +28,9 @@ public class SettingsActivity extends Activity {
         protected static final String TAG = "FeedPreferenceFragment";
         private SharedPreferences.OnSharedPreferenceChangeListener mListener;
         private Preference feedLinkPref;
+
+        private SharedPreferences.OnSharedPreferenceChangeListener pListener;
+        private Preference periodoPref;
 
         @Override
         public void onCreate(Bundle savedInstanceState) {
@@ -49,6 +58,22 @@ public class SettingsActivity extends Activity {
 
             // força chamada ao metodo de callback para exibir link atual
             mListener.onSharedPreferenceChanged(prefs, FEED_LINK);
+
+
+            //__________________________________________________________________________________________
+
+
+            periodoPref = (Preference) getPreferenceManager().findPreference(PERIODO);
+
+            pListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+                @Override
+                public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+                    periodoPref.setSummary(sharedPreferences.getString(PERIODO, "5"));
+                }
+            };
+
+
+
 
         }
     }

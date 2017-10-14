@@ -95,7 +95,6 @@ public class DownloadXMLService extends IntentService {
                 cv.put(PodcastDBHelper.EPISODE_DESC, item.getDescription());
                 cv.put(PodcastDBHelper.EPISODE_DOWNLOAD_LINK, item.getDownloadLink());
                 cv.put(PodcastDBHelper.EPISODE_FILE_URI, "");
-                cv.put(PodcastDBHelper.EPISODE_DOWNLOADED, "false");
                 cv.put(PodcastDBHelper.EPISODE_TIME_PAUSED, "0");
                 cr.insert(PodcastProviderContract.EPISODE_LIST_URI, cv);
             }

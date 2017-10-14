@@ -54,12 +54,7 @@ public class EpisodeDetailActivity extends Activity {
         itemlink.setText(itemFeed.getLink());
         itemDescription.setText(itemFeed.getDescription());
         itemDownloadLink.setText(itemFeed.getDownloadLink());
-
-        //trata a uri para mostrar na tela
-        String uriString = itemFeed.getUri();
-        uriString = (uriString == null) ? "" : uriString;
-        itemUri.setText(uriString);
-
+        itemUri.setText(itemFeed.getUri());
     }
 
 

@@ -18,7 +18,7 @@ public class ItemFeed implements Serializable{
         this.pubDate = pubDate;
         this.description = description;
         this.downloadLink = downloadLink;
-        this.uri = null;
+        this.uri = "";
         this.timePaused = 0;
     }
 
