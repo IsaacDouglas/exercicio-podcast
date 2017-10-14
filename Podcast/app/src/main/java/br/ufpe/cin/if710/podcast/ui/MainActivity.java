@@ -84,11 +84,11 @@ public class MainActivity extends Activity {
         ArrayList<ItemFeed> itemFeed = new ArrayList<>();
         while (c.moveToNext()) {
             String title = c.getString(c.getColumnIndex(PodcastProviderContract.TITLE));
-            String link = c.getString(c.getColumnIndex(PodcastProviderContract.EPISODE_LINK));
+            String link = c.getString(c.getColumnIndex(PodcastProviderContract.LINK));
             String pubDate = c.getString(c.getColumnIndex(PodcastProviderContract.DATE));
             String description = c.getString(c.getColumnIndex(PodcastProviderContract.DESCRIPTION));
             String downloadLink = c.getString(c.getColumnIndex(PodcastProviderContract.DOWNLOAD_LINK));
-            String uriString = c.getString(c.getColumnIndex(PodcastProviderContract.EPISODE_URI));
+            String uriString = c.getString(c.getColumnIndex(PodcastProviderContract.URI));
             Integer timePaused = c.getInt(c.getColumnIndex(PodcastProviderContract.TIME_PAUSED));
 
             ItemFeed item = new ItemFeed(title, link, pubDate, description, downloadLink);
@@ -191,7 +191,7 @@ public class MainActivity extends Activity {
 
             ContentResolver cr = getContentResolver();
             ContentValues cv = new ContentValues();
-            cv.put(PodcastDBHelper.EPISODE_FILE_URI, params.get("uri").toString());
+            cv.put(PodcastProviderContract.URI, params.get("uri").toString());
             String selection = PodcastProviderContract.TITLE + " = ?";
             String[] selectionArgs = new String[]{itemFeed.getTitle()};
             cr.update(PodcastProviderContract.EPISODE_LIST_URI, cv, selection, selectionArgs);
@@ -210,7 +210,7 @@ public class MainActivity extends Activity {
 
             ContentResolver cr = getContentResolver();
             ContentValues cv = new ContentValues();
-            cv.put(PodcastDBHelper.EPISODE_TIME_PAUSED, itemFeed.getTimePaused());
+            cv.put(PodcastProviderContract.TIME_PAUSED, itemFeed.getTimePaused());
             String selection = PodcastProviderContract.TITLE + " = ?";
             String[] selectionArgs = new String[]{itemFeed.getTitle()};
             cr.update(PodcastProviderContract.EPISODE_LIST_URI, cv, selection, selectionArgs);
@@ -240,8 +240,8 @@ public class MainActivity extends Activity {
             //Atualiza o episodio no banco sem a uri e time 0
             ContentResolver cr = getContentResolver();
             ContentValues cv = new ContentValues();
-            cv.put(PodcastDBHelper.EPISODE_TIME_PAUSED, 0);
-            cv.put(PodcastProviderContract.EPISODE_URI, "");
+            cv.put(PodcastProviderContract.TIME_PAUSED, 0);
+            cv.put(PodcastProviderContract.URI, "");
             String selection = PodcastProviderContract.TITLE + " = ?";
             String[] selectionArgs = new String[]{itemFeed.getTitle()};
             cr.update(PodcastProviderContract.EPISODE_LIST_URI, cv, selection, selectionArgs);

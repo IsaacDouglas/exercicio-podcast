@@ -56,7 +56,6 @@ public class PlayPauseEpisodeService extends Service {
                 }
             });
         }
-
     }
 
     @Override
