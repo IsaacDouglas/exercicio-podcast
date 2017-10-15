@@ -23,7 +23,7 @@ public class PlayPauseEpisodeService extends Service {
 
     private MediaPlayer mPlayer;
     private int mStartID;
-    private ItemFeed itemFeed;
+    ItemFeed itemFeed;
 
     @Override
     public void onCreate() {
@@ -42,10 +42,6 @@ public class PlayPauseEpisodeService extends Service {
 
                 @Override
                 public void onCompletion(MediaPlayer mp) {
-                    // encerra se foi iniciado com o mesmo ID
-                    stopSelf(mStartID);
-                    mPlayer.stop();
-                    mPlayer.release();
 
                     //criando um intent para enviar quando a musica acabar
                     Intent musicOver = new Intent(EPISODE_OVER);
@@ -53,6 +49,9 @@ public class PlayPauseEpisodeService extends Service {
                     bundle.putSerializable("Item", itemFeed);
                     musicOver.putExtras(bundle);
                     getApplicationContext().sendBroadcast(musicOver);
+
+                    // encerra se foi iniciado com o mesmo ID
+                    stopSelf(mStartID);
                 }
             });
         }
@@ -87,6 +86,8 @@ public class PlayPauseEpisodeService extends Service {
                 try {
                     mPlayer.setDataSource(this, Uri.parse(itemFeed.getUri()));
                     mPlayer.prepare();
+
+//                    mPlayer.seekTo(mPlayer.getDuration() - 2000);// para fins de teste
                     mPlayer.seekTo(itemFeed.getTimePaused()); // ir para o tempo que foi armazenado no item
                     mPlayer.start();
                 } catch (IOException e) {

@@ -26,6 +26,7 @@ import java.util.ArrayList;
 
 import br.ufpe.cin.if710.podcast.R;
 import br.ufpe.cin.if710.podcast.db.PodcastDBHelper;
+import br.ufpe.cin.if710.podcast.db.PodcastProvider;
 import br.ufpe.cin.if710.podcast.db.PodcastProviderContract;
 import br.ufpe.cin.if710.podcast.domain.ItemFeed;
 import br.ufpe.cin.if710.podcast.service.DownloadXMLService;
@@ -35,6 +36,8 @@ public class MainActivity extends Activity {
 
     //ao fazer envio da resolucao, use este link no seu codigo!
     private final String RSS_FEED = "http://leopoldomt.com/if710/fronteirasdaciencia.xml";
+
+
     //TODO teste com outros links de podcast
 
     // Notification ID permite associar e agrupar notificacoes no futuro
@@ -44,6 +47,7 @@ public class MainActivity extends Activity {
     public static final String DOWNLOAD_XML_COMPLETE = "br.ufpe.cin.if710.podcast.action.DOWNLOAD_XML_COMPLETE";
     public static final String EPISODE_PAUSE = "br.ufpe.cin.if710.podcast.action.EPISODE_PAUSE";
     public static final String EPISODE_OVER = "br.ufpe.cin.if710.podcast.action.EPISODE_OVER";
+    public static final String RSS_FEED_PUBLIC = "http://leopoldomt.com/if710/fronteirasdaciencia.xml";
 
     private ListView items;
 
@@ -120,8 +124,6 @@ public class MainActivity extends Activity {
 
         if (id == R.id.action_settings) {
             startActivity(new Intent(this,SettingsActivity.class));
-        }else if (id == R.id.action_periodicidade){
-            Toast.makeText(getApplicationContext(), "Periodicidade", Toast.LENGTH_SHORT).show();
         }
 
         return super.onOptionsItemSelected(item);
@@ -290,6 +292,4 @@ public class MainActivity extends Activity {
             notificationManager.notify(MY_NOTIFICATION_ID, notification);
         }
     }
-
-
 }

@@ -17,7 +17,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import br.ufpe.cin.if710.podcast.db.PodcastDBHelper;
+import br.ufpe.cin.if710.podcast.db.PodcastProvider;
 import br.ufpe.cin.if710.podcast.db.PodcastProviderContract;
 import br.ufpe.cin.if710.podcast.domain.ItemFeed;
 import br.ufpe.cin.if710.podcast.domain.XmlFeedParser;
@@ -78,6 +78,8 @@ public class DownloadXMLService extends IntentService {
 
         ContentResolver cr;
         ContentValues cv = new ContentValues();
+
+        PodcastProvider pv = new PodcastProvider();
 
         for (ItemFeed item : itemList) {
             ContentResolver crAux = getContentResolver();

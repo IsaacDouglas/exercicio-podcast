@@ -18,7 +18,11 @@
         android:negativeButtonText="@string/cancel"
         android:positiveButtonText="@string/change"
         android:title="Periodicidade"
-        android:defaultValue="3" />
+        android:defaultValue="10" />
+
+    <Preference
+        android:key="cancel"
+        android:title="Remover Periodicidade" />
 
 
 </PreferenceScreen>
