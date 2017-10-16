@@ -22,7 +22,7 @@ public class SettingsActivity extends Activity {
     public static final String FEED_LINK = "feedlink";
     public static final String PERIODO = "periodo";
     public static final String CANCEL = "cancel";
-    public static final int _IDJOB = 10;
+    public static final int JOB_ID = 10;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -112,7 +112,7 @@ public class SettingsActivity extends Activity {
                 @Override
                 public boolean onPreferenceClick(Preference preference) {
                     if(jobScheduler != null){
-                        jobScheduler.cancel(_IDJOB);
+                        jobScheduler.cancel(JOB_ID);
                     }
                     Toast.makeText(getContext(), "Cancelado", Toast.LENGTH_SHORT).show();
                     return true;
@@ -121,19 +121,37 @@ public class SettingsActivity extends Activity {
         }
 
         private void job(long tempo){
-            JobInfo.Builder jobInfo = new JobInfo.Builder(_IDJOB, new ComponentName(getContext(), JobSchedulerTime.class));
-            PersistableBundle bundle = new PersistableBundle();
+            JobInfo.Builder b = new JobInfo.Builder(JOB_ID, new ComponentName(getContext(), JobSchedulerTime.class));
 
-            //setando a internet
-            jobInfo.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY);
+            //criterio de rede
+            b.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY);
+            //b.setRequiredNetworkType(JobInfo.NETWORK_TYPE_NONE);
 
-            //Setando os atributos do job
-            long time = tempo*1000;
-            jobInfo.setPeriodic(time);
-            jobInfo.setRequiresCharging(false);
-            jobInfo.setPersisted(false);
-            jobInfo.setRequiresDeviceIdle(false);
-            jobScheduler.schedule(jobInfo.build());
+            //define intervalo de periodicidade
+            //b.setPeriodic(getPeriod());
+
+            //exige (ou nao) que esteja conectado ao carregador
+            b.setRequiresCharging(false);
+
+            //persiste (ou nao) job entre reboots
+            //se colocar true, tem que solicitar permissao action_boot_completed
+            b.setPersisted(false);
+
+            //exige (ou nao) que dispositivo esteja idle
+            b.setRequiresDeviceIdle(false);
+
+            //backoff criteria (linear ou exponencial)
+            //b.setBackoffCriteria(1500, JobInfo.BACKOFF_POLICY_EXPONENTIAL);
+
+            //periodo de tempo minimo pra rodar
+            //so pode ser chamado se nao definir setPeriodic...
+            b.setMinimumLatency(tempo*3000);
+
+            //mesmo que criterios nao sejam atingidos, define um limite de tempo
+            //so pode ser chamado se nao definir setPeriodic...
+            b.setOverrideDeadline(tempo*6000);
+
+            jobScheduler.schedule(b.build());
 
             Toast.makeText(getContext(), "Agendado", Toast.LENGTH_SHORT).show();
         }

@@ -133,6 +133,13 @@ public class MainActivity extends Activity {
     protected void onResume() {
         primeiroPlano = true;
         super.onResume();
+
+        //Iniciando o download do xml
+        Intent downloadXMLService = new Intent(getApplicationContext(), DownloadXMLService.class);
+        Bundle bundle = new Bundle();
+        bundle.putSerializable("rss", RSS_FEED);
+        downloadXMLService.putExtras(bundle);
+        getApplicationContext().startService(downloadXMLService);
     }
 
     @Override
@@ -155,12 +162,12 @@ public class MainActivity extends Activity {
         registerReceiver(episodeOver, new IntentFilter(EPISODE_OVER));
         registerReceiver(downloadXMLComplete, new IntentFilter(DOWNLOAD_XML_COMPLETE));
 
-        //Iniciando o download do xml
-        Intent downloadXMLService = new Intent(getApplicationContext(), DownloadXMLService.class);
-        Bundle bundle = new Bundle();
-        bundle.putSerializable("rss", RSS_FEED);
-        downloadXMLService.putExtras(bundle);
-        getApplicationContext().startService(downloadXMLService);
+//        //Iniciando o download do xml
+//        Intent downloadXMLService = new Intent(getApplicationContext(), DownloadXMLService.class);
+//        Bundle bundle = new Bundle();
+//        bundle.putSerializable("rss", RSS_FEED);
+//        downloadXMLService.putExtras(bundle);
+//        getApplicationContext().startService(downloadXMLService);
     }
 
     @Override
@@ -185,7 +192,7 @@ public class MainActivity extends Activity {
 
     BroadcastReceiver downloadCompleto = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
-            Toast.makeText(context, "Download Completo", Toast.LENGTH_SHORT).show();
+//            Toast.makeText(context, "Download Completo", Toast.LENGTH_SHORT).show();
 
             //Recupera o Item do intent
             Bundle params = intent.getExtras();
@@ -198,13 +205,13 @@ public class MainActivity extends Activity {
             String[] selectionArgs = new String[]{itemFeed.getTitle()};
             cr.update(PodcastProviderContract.EPISODE_LIST_URI, cv, selection, selectionArgs);
 
-            downloadNotification(true, "Download Concluido", "Acesse para ver as novidades!");
+            downloadNotification(true, false, "Download Concluido", "Acesse para ver as novidades!");
         }
     };
 
     BroadcastReceiver episodePause = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
-            Toast.makeText(context, "Pausou...", Toast.LENGTH_SHORT).show();
+//            Toast.makeText(context, "Pausou...", Toast.LENGTH_SHORT).show();
 
             //Recupera o Item do intent
             Bundle params = intent.getExtras();
@@ -224,7 +231,7 @@ public class MainActivity extends Activity {
 
     BroadcastReceiver episodeOver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
-            Toast.makeText(context, "Episodio Acabou", Toast.LENGTH_SHORT).show();
+//            Toast.makeText(context, "Episodio Acabou", Toast.LENGTH_SHORT).show();
 
             //Recupera o Item do intent
             Bundle params = intent.getExtras();
@@ -248,38 +255,37 @@ public class MainActivity extends Activity {
             String[] selectionArgs = new String[]{itemFeed.getTitle()};
             cr.update(PodcastProviderContract.EPISODE_LIST_URI, cv, selection, selectionArgs);
 
-            //Atualizar a view
-            tela();
+            downloadNotification(true, false, "Episodio Finalizado", "O Episodio Foi Removido da Sua Lista!");
         }
     };
 
     BroadcastReceiver downloadXMLComplete = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
-            Toast.makeText(context, "Download XML Completo", Toast.LENGTH_SHORT).show();
+//            Toast.makeText(context, "Download XML Completo", Toast.LENGTH_SHORT).show();
 
             Bundle params = intent.getExtras();
             boolean atualizou = (Boolean) params.get("atualizou");
 
-            downloadNotification(atualizou, "Podcasts Atualizados", "Acesse para ver as novidades!");
+            downloadNotification(atualizou, false, "Podcasts Atualizados", "Acesse para ver as novidades!");
         }
     };
 
-    private void downloadNotification(Boolean atualizar, String title, String text){
+    private void downloadNotification(Boolean atualizar, Boolean notification, String title, String text){
         View rootView = getWindow().getDecorView().getRootView();
 
         //Verifica se esta em primeiro plano
-        if (rootView.isShown()){
+        if (/*(rootView.isShown() && !notification) ||*/ primeiroPlano){
             //se tem item novo no banco atualiza a tela
             if (atualizar){
                 //Atualizar a view
                 tela();
-                Toast.makeText(getApplicationContext(), "Atualizou", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(getApplicationContext(), "Atualizou", Toast.LENGTH_SHORT).show();
             }
         }else {
             final Intent notificationIntent = new Intent(getApplicationContext(), MainActivity.class);
             final PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 0, notificationIntent, 0);
 
-            final Notification notification = new Notification.Builder(
+            final Notification noti = new Notification.Builder(
                     getApplicationContext())
                     .setSmallIcon(android.R.drawable.btn_star)
                     .setAutoCancel(true)
@@ -289,7 +295,7 @@ public class MainActivity extends Activity {
                     .build();
 
             NotificationManager notificationManager = (NotificationManager)getApplicationContext().getSystemService(NOTIFICATION_SERVICE);
-            notificationManager.notify(MY_NOTIFICATION_ID, notification);
+            notificationManager.notify(MY_NOTIFICATION_ID, noti);
         }
     }
 }
