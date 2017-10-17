@@ -6,13 +6,9 @@ import android.app.job.JobScheduler;
 import android.content.ComponentName;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.PersistableBundle;
+import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
-import android.view.View;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.Spinner;
 import android.widget.Toast;
 
 import br.ufpe.cin.if710.podcast.R;
@@ -20,8 +16,8 @@ import br.ufpe.cin.if710.podcast.service.JobSchedulerTime;
 
 public class SettingsActivity extends Activity {
     public static final String FEED_LINK = "feedlink";
-    public static final String PERIODO = "periodo";
-    public static final String CANCEL = "cancel";
+    public static final String CANCEL = "cancelarJob";
+    public static final String AGENDAR = "agendarJob";
     public static final int JOB_ID = 10;
 
     @Override
@@ -35,10 +31,8 @@ public class SettingsActivity extends Activity {
         protected static final String TAG = "FeedPreferenceFragment";
         private SharedPreferences.OnSharedPreferenceChangeListener mListener;
         private Preference feedLinkPref;
-
-        private SharedPreferences.OnSharedPreferenceChangeListener pListener;
-        private Preference periodoPref;
         private JobScheduler jobScheduler;
+        private ListPreference listPreference;
 
         @Override
         public void onCreate(Bundle savedInstanceState) {
@@ -70,57 +64,37 @@ public class SettingsActivity extends Activity {
 
             //__________________________________________________________________________________________
 
-            periodoPref = (Preference) getPreferenceManager().findPreference(PERIODO);
-
-            pListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
-                @Override
-                public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-                    long tempo = 10;
-                    String s = sharedPreferences.getString(PERIODO, "10");
-
-                    try {
-                        tempo = Long.parseLong(s);
-
-                        if(tempo > 0){
-                            periodoPref.setSummary(sharedPreferences.getString(PERIODO, "10"));
-                            job(tempo);
-                        }else{
-                            tempo = 10;
-                            periodoPref.setSummary("10");
-                            Toast.makeText(getContext(), "Digite um número positivo", Toast.LENGTH_SHORT).show();
-                        }
-
-                    }catch (Exception e){
-                        periodoPref.setSummary("10");
-                        Toast.makeText(getContext(), "Digite um número", Toast.LENGTH_SHORT).show();
-                    }
-                }
-            };
-
-            // registra o listener no objeto SharedPreferences
-            prefs.registerOnSharedPreferenceChangeListener(pListener);
-
-            // força chamada ao metodo de callback para exibir link atual
-            pListener.onSharedPreferenceChanged(prefs, PERIODO);
-
             //Inicializa o job
             jobScheduler = (JobScheduler) getContext().getSystemService(JOB_SCHEDULER_SERVICE);
 
             //Coloca o botao de cancelar
-            Preference button = getPreferenceManager().findPreference(CANCEL);
-            button.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+            Preference cancelar = getPreferenceManager().findPreference(CANCEL);
+            cancelar.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                 @Override
                 public boolean onPreferenceClick(Preference preference) {
-                    if(jobScheduler != null){
-                        jobScheduler.cancel(JOB_ID);
-                    }
-                    Toast.makeText(getContext(), "Cancelado", Toast.LENGTH_SHORT).show();
+                    cancelarjobs();
+                    Toast.makeText(getContext(), "Agendamento desmarcado", Toast.LENGTH_SHORT).show();
+                    return true;
+                }
+            });
+
+            listPreference = (ListPreference)getPreferenceManager().findPreference(AGENDAR);//inicializa
+            listPreference.setEntries(R.array.periods_string);
+            listPreference.setEntryValues(R.array.periods_long);
+
+            //Fazer agendamento
+            listPreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                @Override
+                public boolean onPreferenceChange(Preference preference, Object newValue) {
+                    String s = newValue.toString();
+                    long tempo = Long.parseLong(s);
+                    agendarJob(tempo);
                     return true;
                 }
             });
         }
 
-        private void job(long tempo){
+        private void agendarJob(long tempo){
             JobInfo.Builder b = new JobInfo.Builder(JOB_ID, new ComponentName(getContext(), JobSchedulerTime.class));
 
             //criterio de rede
@@ -128,7 +102,7 @@ public class SettingsActivity extends Activity {
             //b.setRequiredNetworkType(JobInfo.NETWORK_TYPE_NONE);
 
             //define intervalo de periodicidade
-            //b.setPeriodic(getPeriod());
+            b.setPeriodic(tempo * 60000);
 
             //exige (ou nao) que esteja conectado ao carregador
             b.setRequiresCharging(false);
@@ -145,16 +119,21 @@ public class SettingsActivity extends Activity {
 
             //periodo de tempo minimo pra rodar
             //so pode ser chamado se nao definir setPeriodic...
-            b.setMinimumLatency(tempo*3000);
+            //b.setMinimumLatency(3000);
 
             //mesmo que criterios nao sejam atingidos, define um limite de tempo
             //so pode ser chamado se nao definir setPeriodic...
-            b.setOverrideDeadline(tempo*6000);
+            //b.setOverrideDeadline(6000);
 
             jobScheduler.schedule(b.build());
 
             Toast.makeText(getContext(), "Agendado", Toast.LENGTH_SHORT).show();
         }
 
+        private void cancelarjobs(){
+            if(jobScheduler != null){
+                jobScheduler.cancel(JOB_ID);
+            }
+        }
     }
 }

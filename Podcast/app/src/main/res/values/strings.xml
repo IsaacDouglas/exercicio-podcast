@@ -12,4 +12,23 @@
     <string name="action_settings">Settings</string>
     <string name="title_activity_settings">SettingsActivity</string>
 
+    <string-array name="periods_string">
+        <item>15 Minutos</item>
+        <item>30 Minutos</item>
+        <item>45 Minutos</item>
+        <item>60 Minutos</item>
+        <item>2 Horas</item>
+        <item>4 Horas</item>
+        <item>8 Horas</item>
+    </string-array>
+    <string-array name="periods_long">
+        <item>15</item>
+        <item>30</item>
+        <item>45</item>
+        <item>60</item>
+        <item>120</item>
+        <item>240</item>
+        <item>480</item>
+    </string-array>
+
 </resources>

@@ -1,5 +1,6 @@
 package br.ufpe.cin.if710.podcast.ui;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -10,10 +11,13 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.annotation.NonNull;
+import android.support.v4.content.ContextCompat;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -29,6 +33,7 @@ import br.ufpe.cin.if710.podcast.db.PodcastDBHelper;
 import br.ufpe.cin.if710.podcast.db.PodcastProvider;
 import br.ufpe.cin.if710.podcast.db.PodcastProviderContract;
 import br.ufpe.cin.if710.podcast.domain.ItemFeed;
+import br.ufpe.cin.if710.podcast.service.DownloadEpisodeService;
 import br.ufpe.cin.if710.podcast.service.DownloadXMLService;
 import br.ufpe.cin.if710.podcast.ui.adapter.XmlFeedAdapter;
 
@@ -47,11 +52,20 @@ public class MainActivity extends Activity {
     public static final String DOWNLOAD_XML_COMPLETE = "br.ufpe.cin.if710.podcast.action.DOWNLOAD_XML_COMPLETE";
     public static final String EPISODE_PAUSE = "br.ufpe.cin.if710.podcast.action.EPISODE_PAUSE";
     public static final String EPISODE_OVER = "br.ufpe.cin.if710.podcast.action.EPISODE_OVER";
+    public static final String PERMISSIONS_STORAGE = "br.ufpe.cin.if710.podcast.action.PERMISSIONS_STORAGE";
     public static final String RSS_FEED_PUBLIC = "http://leopoldomt.com/if710/fronteirasdaciencia.xml";
 
     private ListView items;
 
-    boolean primeiroPlano = false;
+    boolean primeiroPlano = true;
+
+    int posicao = 0;
+
+    private static final String[] STORAGE_PERMISSIONS = {
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+    };
+
+    private static final int WRITE_EXTERNAL_STORAGE_REQUEST = 710;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,6 +92,24 @@ public class MainActivity extends Activity {
                 startActivity(i);
             }
         });
+
+        if (!podeEscrever()) {
+            requestPermissions(STORAGE_PERMISSIONS, WRITE_EXTERNAL_STORAGE_REQUEST);
+        }
+    }
+
+    public boolean podeEscrever() {
+        return ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch(requestCode) {
+            case WRITE_EXTERNAL_STORAGE_REQUEST:
+                if (!podeEscrever()) {
+                    Toast.makeText(this, "Sem permissão para escrita", Toast.LENGTH_SHORT).show();
+                }
+                break;
+        }
     }
 
     private void tela(){
@@ -161,13 +193,7 @@ public class MainActivity extends Activity {
         registerReceiver(episodePause, new IntentFilter(EPISODE_PAUSE));
         registerReceiver(episodeOver, new IntentFilter(EPISODE_OVER));
         registerReceiver(downloadXMLComplete, new IntentFilter(DOWNLOAD_XML_COMPLETE));
-
-//        //Iniciando o download do xml
-//        Intent downloadXMLService = new Intent(getApplicationContext(), DownloadXMLService.class);
-//        Bundle bundle = new Bundle();
-//        bundle.putSerializable("rss", RSS_FEED);
-//        downloadXMLService.putExtras(bundle);
-//        getApplicationContext().startService(downloadXMLService);
+        registerReceiver(permissaoEscrita, new IntentFilter(PERMISSIONS_STORAGE));
     }
 
     @Override
@@ -188,6 +214,7 @@ public class MainActivity extends Activity {
         unregisterReceiver(episodePause);
         unregisterReceiver(episodeOver);
         unregisterReceiver(downloadXMLComplete);
+        unregisterReceiver(permissaoEscrita);
     }
 
     BroadcastReceiver downloadCompleto = new BroadcastReceiver() {
@@ -205,7 +232,7 @@ public class MainActivity extends Activity {
             String[] selectionArgs = new String[]{itemFeed.getTitle()};
             cr.update(PodcastProviderContract.EPISODE_LIST_URI, cv, selection, selectionArgs);
 
-            downloadNotification(true, false, "Download Concluido", "Acesse para ver as novidades!");
+            downloadNotification(true, "Download Concluido", "Acesse para ver as novidades!");
         }
     };
 
@@ -255,26 +282,32 @@ public class MainActivity extends Activity {
             String[] selectionArgs = new String[]{itemFeed.getTitle()};
             cr.update(PodcastProviderContract.EPISODE_LIST_URI, cv, selection, selectionArgs);
 
-            downloadNotification(true, false, "Episodio Finalizado", "O Episodio Foi Removido da Sua Lista!");
+            downloadNotification(true, "Episodio Finalizado", "O Episodio Foi Removido da Sua Lista!");
         }
     };
 
     BroadcastReceiver downloadXMLComplete = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
 //            Toast.makeText(context, "Download XML Completo", Toast.LENGTH_SHORT).show();
-
             Bundle params = intent.getExtras();
             boolean atualizou = (Boolean) params.get("atualizou");
-
-            downloadNotification(atualizou, false, "Podcasts Atualizados", "Acesse para ver as novidades!");
+            downloadNotification(atualizou, "Podcasts Atualizados", "Acesse para ver as novidades!");
         }
     };
 
-    private void downloadNotification(Boolean atualizar, Boolean notification, String title, String text){
-        View rootView = getWindow().getDecorView().getRootView();
+    BroadcastReceiver permissaoEscrita = new BroadcastReceiver() {
+        public void onReceive(Context context, Intent intent) {
+            if (!podeEscrever()) {
+                requestPermissions(STORAGE_PERMISSIONS, WRITE_EXTERNAL_STORAGE_REQUEST);
+            }
+        }
+    };
+
+    private void downloadNotification(Boolean atualizar, String title, String text){
+        View rootView = MainActivity.this.getWindow().getDecorView().getRootView();
 
         //Verifica se esta em primeiro plano
-        if (/*(rootView.isShown() && !notification) ||*/ primeiroPlano){
+        if (rootView.isShown()){
             //se tem item novo no banco atualiza a tela
             if (atualizar){
                 //Atualizar a view

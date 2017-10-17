@@ -2,27 +2,25 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     android:key="@+id/pref_screen">
 
-    <EditTextPreference
-        android:dialogTitle="@string/pref_title"
-        android:dialogMessage="@string/pref_msg"
-        android:key="feedlink"
-        android:negativeButtonText="@string/cancel"
-        android:positiveButtonText="@string/change"
-        android:title="@string/pref_desc"
-        android:defaultValue="@string/feed_link" />
+    <PreferenceCategory android:title="Feed" >
+        <EditTextPreference
+            android:dialogTitle="@string/pref_title"
+            android:dialogMessage="@string/pref_msg"
+            android:key="feedlink"
+            android:negativeButtonText="@string/cancel"
+            android:positiveButtonText="@string/change"
+            android:title="@string/pref_desc"
+            android:defaultValue="@string/feed_link" />
+    </PreferenceCategory>
 
-    <EditTextPreference
-        android:dialogTitle="Mudar Periodicidade"
-        android:dialogMessage="Em quanto tempo deseja atualizar o Feed?"
-        android:key="periodo"
-        android:negativeButtonText="@string/cancel"
-        android:positiveButtonText="@string/change"
-        android:title="Periodicidade"
-        android:defaultValue="10" />
-
-    <Preference
-        android:key="cancel"
-        android:title="Remover Periodicidade" />
+    <PreferenceCategory android:title="Agendamento de Atualizações" >
+        <ListPreference android:key="agendarJob"
+            android:title="Tempo para agendamento"
+            android:summary="Selecionar o Tempo" />
+        <Preference
+            android:key="cancelarJob"
+            android:title="Desmarcar agendamento" />
+    </PreferenceCategory>
 
 
 </PreferenceScreen>

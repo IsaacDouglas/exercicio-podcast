@@ -1,9 +1,14 @@
 package br.ufpe.cin.if710.podcast.ui.adapter;
 
 import java.util.List;
+
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.v4.content.ContextCompat;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -20,6 +25,7 @@ import android.widget.Toast;
 public class XmlFeedAdapter extends ArrayAdapter<ItemFeed> {
 
     int linkResource;
+    public static final String PERMISSIONS_STORAGE = "br.ufpe.cin.if710.podcast.action.PERMISSIONS_STORAGE";
 
     public XmlFeedAdapter(Context context, int resource, List<ItemFeed> objects) {
         super(context, resource, objects);
@@ -90,17 +96,23 @@ public class XmlFeedAdapter extends ArrayAdapter<ItemFeed> {
             @Override
             public void onClick(View view) {
                 if(uri.length()==0){
-                    holder.button.setEnabled(false); //desabilitar o botao de download
-                    Toast.makeText(getContext(), "Iniciando o download", Toast.LENGTH_SHORT).show();
+                    if (!podeEscrever()) {
+                        //prepara o intent para passar o broadcast de salvar na memoria
+                        Intent storage = new Intent(PERMISSIONS_STORAGE);
+                        getContext().sendBroadcast(storage);
+                    }else {
+                        holder.button.setEnabled(false); //desabilitar o botao de download
 
-                    //cria um intent para iniciar o service e passa o item clicado
-                    Intent downloadService = new Intent(getContext(), DownloadEpisodeService.class);
-                    Bundle bundle = new Bundle();
-                    bundle.putSerializable("Item", getItem(position));
-                    downloadService.putExtras(bundle);
-                    getContext().startService(downloadService);
+                        Toast.makeText(getContext(), "Iniciando o download", Toast.LENGTH_SHORT).show();
+                        holder.button.setText("Baixando");
+                        //cria um intent para iniciar o service e passa o item clicado
+                        Intent downloadService = new Intent(getContext(), DownloadEpisodeService.class);
+                        Bundle bundle = new Bundle();
+                        bundle.putSerializable("Item", getItem(position));
+                        downloadService.putExtras(bundle);
+                        getContext().startService(downloadService);
+                    }
                 }else{
-
                     //troca de play para pause e vice versa
                     if(holder.button.getText().equals("Play")){
                         holder.button.setText("Pause");
@@ -119,5 +131,9 @@ public class XmlFeedAdapter extends ArrayAdapter<ItemFeed> {
         });
 
         return convertView;
+    }
+
+    public boolean podeEscrever() {
+        return ContextCompat.checkSelfPermission(getContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
     }
 }
