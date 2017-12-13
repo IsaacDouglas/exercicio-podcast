@@ -9,7 +9,7 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
-public class XmlFeedParser {
+public class    XmlFeedParser {
 
     public static List<ItemFeed> parse(String xmlFeed) throws XmlPullParserException, IOException {
         XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
