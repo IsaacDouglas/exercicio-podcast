@@ -10,11 +10,11 @@ Fechando o app e abrindo de novo ele abre uma nova conexão como na imagem 2 e b
 
 Logo quando inicializa o download a aplicação começa a consumir em média 30KB/S e abrindo 4 conexões como mostra a imagem 3, e se mantém assim na média durante todo o download como na imagem 4 e logo após um tempo e antes de terminar o download as conexões diminuíram de 4 para 1 e se mantém assim até terminar o download, como mostra a imagem 5.
 
-![rede3j.png](https://github.com/IsaacDouglas/exercicio-podcast/tree/master/imagens/rede3j.png)
+![rede3j.jpg](https://github.com/IsaacDouglas/exercicio-podcast/tree/master/imagens/rede3j.jpg)
 *Imagem 3*
 
-![rede4j.png](https://github.com/IsaacDouglas/exercicio-podcast/tree/master/imagens/rede4j.png)
+![rede4j.jpg](https://github.com/IsaacDouglas/exercicio-podcast/tree/master/imagens/rede4j.jpg)
 *Imagem 4*
 
-![rede5j.png](https://github.com/IsaacDouglas/exercicio-podcast/tree/master/imagens/rede5j.png)
+![rede5j.jpg](https://github.com/IsaacDouglas/exercicio-podcast/tree/master/imagens/rede5j.jpg)
 *Imagem 5*
