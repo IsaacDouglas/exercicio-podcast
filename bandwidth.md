@@ -1,3 +1,5 @@
+## Consumo de Rede
+
 Quando abre o app ele abre uma conexão e faz o download do feed e exibe na tela, nas informações da imagem 1, mostra que o feed baixou 78,4KB/S e enviou 2,32KB/S.
 
 ![rede1.png](https://github.com/IsaacDouglas/exercicio-podcast/tree/master/imagens/rede1.png)

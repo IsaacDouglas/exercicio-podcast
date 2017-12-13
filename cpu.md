@@ -1,3 +1,5 @@
+## CPU & Performance
+
 Logo quando inicializa o App o processamento some, mas se deve ao fato de inicializar a MainActivity com as partes grafica e também a inicialização do ok http para fazer a conexão com a internet como mostra na imagem abaixo.
 
 ![cpu1.png](https://github.com/IsaacDouglas/exercicio-podcast/tree/master/imagens/cpu1.png)
