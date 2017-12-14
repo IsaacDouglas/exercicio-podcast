@@ -75,3 +75,30 @@
 
         Assert.assertNull("fail", result);
     }
+    
+### Teste instrumental de download e play
+#### Para os testes instrumentais utilizamos o uianimator. Basicamente o teste abaixo abre o podcastplayer, em seguida baixa e da play no audio. segue o código:
+    @Override
+    public void setUp() throws Exception {
+        device = UiDevice.getInstance(getInstrumentation());
+        device.pressHome();
+        device.wait(Until.hasObject(By.desc("Apps")), 5000);
+
+        UiObject2 appsButton = device.findObject(By.descContains("Apps"));
+        appsButton.click();
+        device.wait(Until.hasObject(By.text("Podcast")), 5000);
+
+        UiObject2 podcasthelper = device.findObject(By.text("Podcast"));
+        podcasthelper.click();
+        device.wait(Until.hasObject(By.text("Open navigation drawer")), 3000);
+
+        UiObject2 botaoDownload = device.findObject(By.text("DOWNLOAD"));
+        botaoDownload.click();
+        device.wait(Until.hasObject(By.text("PLAY")), 5000);
+
+        UiObject2 botaoPlay = device.findObject(By.text("PLAY"));
+        botaoPlay.click();
+
+        super.setUp();
+
+    }
