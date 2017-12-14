@@ -6,6 +6,7 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.util.Log;
 
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -14,9 +15,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.time.Clock;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
+import br.ufpe.cin.if710.podcast.db.BaseDados;
+import br.ufpe.cin.if710.podcast.db.ItemFeedDaoRoom;
 import br.ufpe.cin.if710.podcast.db.PodcastProvider;
 import br.ufpe.cin.if710.podcast.db.PodcastProviderContract;
 import br.ufpe.cin.if710.podcast.domain.ItemFeed;
@@ -81,7 +86,15 @@ public class DownloadXMLService extends IntentService {
 
         PodcastProvider pv = new PodcastProvider();
 
+        //inserindo os dados no Room
+        ItemFeedDaoRoom db = BaseDados.getBaseDados(getApplicationContext()).itemFeedDaoRoom() ;
         for (ItemFeed item : itemList) {
+            db.inserir(item);
+        }
+
+        //inserindo os dados no sqllite
+        for (ItemFeed item : itemList) {
+
             ContentResolver crAux = getContentResolver();
             String selection = PodcastProviderContract.TITLE + " = ?";
             String[] selectionArgs = new String[]{item.getTitle()};

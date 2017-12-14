@@ -15,9 +15,9 @@ import br.ufpe.cin.if710.podcast.domain.ItemFeed;
 public abstract class BaseDados extends RoomDatabase {
     private static BaseDados INSTANCE;
 
-    public static BaseDados getDatabase(Context context) {
+    public static BaseDados getBaseDados(Context context) {
         if (INSTANCE == null) {
-            INSTANCE = Room.databaseBuilder(context.getApplicationContext(), BaseDados.class,"podcast").build();
+            INSTANCE = Room.databaseBuilder(context.getApplicationContext(), BaseDados.class,"ItemFeed") .build();
         }
         return INSTANCE;
     }
