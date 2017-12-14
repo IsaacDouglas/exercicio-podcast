@@ -1,8 +1,15 @@
 package br.ufpe.cin.if710.podcast.domain;
 
 import java.io.Serializable;
+import android.arch.persistence.room.Entity;
+import android.arch.persistence.room.PrimaryKey;
 
+@Entity
 public class ItemFeed implements Serializable{
+
+    @PrimaryKey(autoGenerate = true)
+    private int id;
+
     private final String title;
     private final String link;
     private final String pubDate;
@@ -61,5 +68,13 @@ public class ItemFeed implements Serializable{
 
     public void setTimePaused(Integer timePaused) {
         this.timePaused = timePaused;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 }
